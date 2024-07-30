@@ -1,0 +1,42 @@
+#这种问题的解决方法
+
+LAMMPS (2 Aug 2023 - Update 3)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:98)
+  using 1 OpenMP thread(s) per MPI task
+units                   metal #模拟分子单位用real合适一些，but 势能中是metal 要一致
+atom_style        atomic
+dimension         3
+boundary           p  p  p  #三维边界
+
+#create simulation cell
+
+read_data       graphite.data
+Reading data file ...
+  orthogonal box = (0 0 0) to (12.7825 12.3 13.6)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  240 atoms
+  read_data CPU = 0.002 seconds
+
+
+#set up neighbor list and force calculations
+neighbor              2.0 bin #设置邻居列表
+neigh_modify     every 1 delay 0 check yes    # 大部分都这么写，表示邻居列表的更新频率
+
+
+#势能函
+pair_style         airebo 3.0
+ERROR: Unrecognized pair style 'airebo' is part of the MANYBODY package which is not enabled in this LAMMPS binary. (src/force.cpp:271)
+Last command: pair_style         airebo 3.0
+
+#解决方法
+cd /home/user/lammps
+tar -xzvf lammps-stable.tar.gz
+cd lammps-stable/src
+make yes-MANYBODY
+make mpi
+./lmp_mpi -h | grep airebo  # 验证airebo是否可用
+cd /path/to/your/input
+lmp_mpi -in input.lammps
+
+
